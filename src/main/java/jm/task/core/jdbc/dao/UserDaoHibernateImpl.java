@@ -1,12 +1,9 @@
 package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
-import jm.task.core.jdbc.util.HibernateUtil;
 import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 
 import java.util.List;
 
@@ -14,15 +11,35 @@ public class UserDaoHibernateImpl implements UserDao {
     SessionFactory factory;
 
     public UserDaoHibernateImpl() {
-        factory = HibernateUtil.getSessionFactory();
+        factory = Util.getSessionFactory();
     }
 
 
     @Override
-    public void createUsersTable() {}
+    public void createUsersTable() {
+        try(Session session = factory.getCurrentSession()) {
+            session.beginTransaction();
+            session.createNativeQuery("CREATE TABLE IF NOT EXISTS users (\n" +
+                    "  ID int NOT NULL AUTO_INCREMENT,\n" +
+                    "  first_name varchar(45) NOT NULL,\n" +
+                    "  last_name varchar(45) NOT NULL,\n" +
+                    "  age int NOT NULL,\n" +
+                    "  PRIMARY KEY (id))").executeUpdate();
+            session.getTransaction().commit();
+        }
+    }
 
     @Override
-    public void dropUsersTable() {}
+    public void dropUsersTable() {
+        try (Session session = factory.getCurrentSession()) {
+            session.beginTransaction();
+            session.createNativeQuery("DROP TABLE IF EXISTS users").executeUpdate();
+            session.getTransaction().commit();
+        }
+    }
+
+
+
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
